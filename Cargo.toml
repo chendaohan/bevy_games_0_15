@@ -1,0 +1,15 @@
+[package]
+name = "bevy_games_0_15"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bevy = { version = "0.15.0-rc.3", features = ["dynamic_linking", "mp3", "bevy_dev_tools"] }
+avian3d = { git = "https://github.com/Jondolf/avian", branch = "main" }
+bevy_remote_inspector = { git = "https://github.com/notmd/bevy_remote_inspector.git", branch = "main" }
+
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 3
