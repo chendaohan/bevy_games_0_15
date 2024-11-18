@@ -8,6 +8,7 @@ bevy = { version = "0.15.0-rc.3", features = ["dynamic_linking", "mp3", "bevy_de
 avian3d = { git = "https://github.com/Jondolf/avian", branch = "main" }
 uuid = "1.11"
 rand = "0.8"
+spin_sleep = "1.2"
 bevy_remote_inspector = { git = "https://github.com/notmd/bevy_remote_inspector.git", branch = "main" }
 
 [profile.dev]

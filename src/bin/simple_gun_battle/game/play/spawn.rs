@@ -1,6 +1,9 @@
 use bevy::{color::palettes::tailwind, prelude::*};
 
-use crate::{game::GameState, ui_utils::DEFAULT_FONT};
+use crate::{
+    game::GameState,
+    ui_utils::{Widgets, DEFAULT_FONT},
+};
 
 pub fn plugin(app: &mut App) {
     app.add_systems(
@@ -60,16 +63,7 @@ fn spawn_enemy_count_text(mut commands: Commands) {
 
 fn spawn_front_sight(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands
-        .spawn((
-            Node {
-                width: Val::Percent(100.),
-                height: Val::Percent(100.),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                ..default()
-            },
-            StateScoped(GameState::Play),
-        ))
+        .column(Val::Auto, Color::NONE, GameState::Play)
         .with_child((
             UiImage {
                 image: asset_server.load("front_sight.png"),

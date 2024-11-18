@@ -77,7 +77,7 @@ impl<T: SpawnUi> Widgets for T {
             Text(text.into()),
             TextFont {
                 font: DEFAULT_FONT,
-                font_size: 120.,
+                font_size: 140.,
                 ..default()
             },
         ))

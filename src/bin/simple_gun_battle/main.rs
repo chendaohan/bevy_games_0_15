@@ -1,9 +1,11 @@
+mod framepace;
 mod game;
 mod start_menu;
 mod ui_utils;
 
 use avian3d::prelude::*;
 use bevy::{input::common_conditions::input_just_pressed, prelude::*, window::WindowMode};
+use framepace::FramepacePlugin;
 
 fn main() -> AppExit {
     App::new()
@@ -22,7 +24,7 @@ fn main() -> AppExit {
                     ..default()
                 }),
         )
-        .add_plugins(PhysicsPlugins::default())
+        .add_plugins((PhysicsPlugins::default(), FramepacePlugin))
         .add_plugins((ui_utils::plugin, start_menu::plugin, game::plugin))
         // .add_plugins(PhysicsDebugPlugin::default())
         .init_state::<AppState>()
