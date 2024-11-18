@@ -5,11 +5,14 @@ const PRESSED: Color = Color::Srgba(tailwind::RED_600);
 const HOVERED: Color = Color::Srgba(tailwind::PURPLE_300);
 const NONE: Color = Color::Srgba(tailwind::ORANGE_500);
 
-pub const DEFAULT_FONT: Handle<Font> = Handle::Weak(AssetId::Uuid { uuid:  uuid!("0efa080a-3128-4329-9cd1-76f1e116e824")});
+pub const DEFAULT_FONT: Handle<Font> = Handle::Weak(AssetId::Uuid {
+    uuid: uuid!("0efa080a-3128-4329-9cd1-76f1e116e824"),
+});
 
 pub fn plugin(app: &mut App) {
-    app.add_systems(Update, change_button_background);
-    
+    app.add_systems(Startup, spawn_ui_camera)
+        .add_systems(Update, change_button_background);
+
     load_internal_binary_asset!(
         app,
         DEFAULT_FONT,
@@ -18,31 +21,70 @@ pub fn plugin(app: &mut App) {
     );
 }
 
-trait Spawn: Send + Sync {
-    fn spawn<B: Bundle>(&mut self, bundle: B) -> EntityCommands;
+pub trait SpawnUi: Send + Sync {
+    fn spawn_ui(&mut self, bundle: impl Bundle) -> EntityCommands;
 }
 
-impl Spawn for Commands<'_, '_> {
-    fn spawn<B: Bundle>(&mut self, bundle: B) -> EntityCommands {
+pub trait Widgets: SpawnUi {
+    fn column(
+        &mut self,
+        row_gap: Val,
+        background: impl Into<Color>,
+        state_scoped: impl States,
+    ) -> EntityCommands;
+
+    fn title(&mut self, text: impl Into<String>) -> EntityCommands;
+
+    fn button(&mut self, text: impl Into<String>, marker: impl Component) -> EntityCommands;
+}
+
+impl SpawnUi for Commands<'_, '_> {
+    fn spawn_ui(&mut self, bundle: impl Bundle) -> EntityCommands {
         self.spawn(bundle)
     }
 }
 
-impl Spawn for ChildBuilder<'_> {
-    fn spawn<B: Bundle>(&mut self, bundle: B) -> EntityCommands {
-        <Self as ChildBuild>::spawn(self, bundle)
+impl SpawnUi for ChildBuilder<'_> {
+    fn spawn_ui(&mut self, bundle: impl Bundle) -> EntityCommands {
+        self.spawn(bundle)
     }
 }
 
-trait Widgets: Spawn {
-    fn button(&mut self, text: impl Into<String>, marker: impl Component);
+impl<T: SpawnUi> Widgets for T {
+    fn column(
+        &mut self,
+        row_gap: Val,
+        background: impl Into<Color>,
+        state_scoped: impl States,
+    ) -> EntityCommands {
+        self.spawn_ui((
+            Node {
+                flex_direction: FlexDirection::Column,
+                width: Val::Percent(100.),
+                height: Val::Percent(100.),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                row_gap,
+                ..default()
+            },
+            BackgroundColor(background.into()),
+            StateScoped(state_scoped),
+        ))
+    }
 
-    fn column(&mut self, gap: Val, background_color: impl Into<Color>, state_scoped: impl States) -> EntityCommands;
-}
+    fn title(&mut self, text: impl Into<String>) -> EntityCommands {
+        self.spawn_ui((
+            Text(text.into()),
+            TextFont {
+                font: DEFAULT_FONT,
+                font_size: 120.,
+                ..default()
+            },
+        ))
+    }
 
-impl<T: Spawn> Widgets for T {
-    fn button(&mut self, text: impl Into<String>, marker: impl Component){
-        self.spawn((
+    fn button(&mut self, text: impl Into<String>, marker: impl Component) -> EntityCommands {
+        let mut entity_commands = self.spawn_ui((
             Button,
             Node {
                 justify_content: JustifyContent::Center,
@@ -52,35 +94,28 @@ impl<T: Spawn> Widgets for T {
                 border: UiRect::all(Val::Px(8.)),
                 ..default()
             },
-            BackgroundColor(NONE),
-            BorderColor(Color::BLACK),
             BorderRadius::all(Val::Percent(50.)),
+            BorderColor(Color::BLACK),
             marker,
-        )).with_child((
+        ));
+        entity_commands.with_child((
             Text::new(text),
             TextFont {
                 font: DEFAULT_FONT,
                 font_size: 65.,
                 ..default()
-            }
-        ));
-    }
-
-    fn column(&mut self, gap: Val, background_color: impl Into<Color>, state_scoped: impl States) -> EntityCommands {
-        self.spawn((
-            Node {
-                flex_direction: FlexDirection::Column,
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                width: Val::Percent(100.),
-                height: Val::Percent(100.),
-                row_gap: gap,
-                ..default()
             },
-            BackgroundColor(background_color.into()),
-            StateScoped(state_scoped),
-        ))
+        ));
+        entity_commands
     }
+}
+
+#[derive(Component, Clone, Copy)]
+#[require(Camera2d)]
+pub struct UiCamera;
+
+fn spawn_ui_camera(mut commands: Commands) {
+    commands.spawn(UiCamera);
 }
 
 fn change_button_background(mut buttons: Query<(&Interaction, &mut BackgroundColor)>) {

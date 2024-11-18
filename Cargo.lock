@@ -751,6 +751,7 @@ dependencies = [
  "avian3d",
  "bevy",
  "bevy_remote_inspector",
+ "rand",
  "uuid",
 ]
 
