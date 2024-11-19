@@ -88,7 +88,7 @@ fn spawn_to_play(
 }
 
 fn despawn_scene_player(
-    _: Trigger<DespawnScenePlayer>,
+    _trigger: Trigger<DespawnScenePlayer>,
     mut commands: Commands,
     game_scene: Single<Entity, With<GameScene>>,
     player: Single<Entity, With<Player>>,

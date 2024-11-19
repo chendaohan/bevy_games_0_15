@@ -26,10 +26,8 @@ fn main() -> AppExit {
         )
         .add_plugins((PhysicsPlugins::default(), FramepacePlugin))
         .add_plugins((ui_utils::plugin, start_menu::plugin, game::plugin))
-        // .add_plugins(PhysicsDebugPlugin::default())
         .init_state::<AppState>()
         .enable_state_scoped_entities::<AppState>()
-        .add_systems(Startup, state_to_start_menu)
         .add_systems(Update, exit_app.run_if(input_just_pressed(KeyCode::Escape)))
         .run()
 }
@@ -37,13 +35,8 @@ fn main() -> AppExit {
 #[derive(Debug, Default, PartialEq, Eq, Clone, Copy, Hash, States)]
 enum AppState {
     #[default]
-    None,
     StartMenu,
     Game,
-}
-
-fn state_to_start_menu(mut next_state: ResMut<NextState<AppState>>) {
-    next_state.set(AppState::StartMenu);
 }
 
 fn exit_app(mut exit_writer: EventWriter<AppExit>) {

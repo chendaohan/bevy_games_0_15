@@ -7,7 +7,7 @@ use crate::game::{
     GameState,
 };
 
-use super::{Enemy, PassLevelDetection, UpdateEnemyCount};
+use super::{Enemy, HealthPoints, PassLevelDetection, UpdateEnemyCount, UpdateHealthBar};
 
 const MOVEMENT_SPEED: f32 = 14.;
 const JUMP_SPEED: f32 = 17.;
@@ -105,7 +105,7 @@ fn attack_enmey(
     spatial_query: SpatialQuery,
     camera: Single<(&Camera, &GlobalTransform), With<PlayerCamera>>,
     window: Single<&Window, With<PrimaryWindow>>,
-    mut enemies: Query<&mut Enemy>,
+    mut enemies: Query<&mut HealthPoints, With<Enemy>>,
     mouse_button: Res<ButtonInput<MouseButton>>,
 ) {
     if !mouse_button.just_pressed(MouseButton::Left) {
@@ -135,13 +135,14 @@ fn attack_enmey(
     let Some(hit_data) = hits.get(1) else {
         return;
     };
-    let Ok(mut enemy) = enemies.get_mut(hit_data.entity) else {
+    let Ok(mut health_points) = enemies.get_mut(hit_data.entity) else {
         return;
     };
-    enemy.0 -= thread_rng().gen_range(12.0..25.0);
-    if enemy.0 <= 0.0 {
+    health_points.current -= thread_rng().gen_range(12.0..25.0);
+    if health_points.current <= 0.0 {
         commands.entity(hits[1].entity).despawn_recursive();
     }
     commands.trigger(UpdateEnemyCount);
     commands.trigger(PassLevelDetection);
+    commands.trigger(UpdateHealthBar(hits[1].entity));
 }

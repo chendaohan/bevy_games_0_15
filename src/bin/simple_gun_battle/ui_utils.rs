@@ -10,15 +10,15 @@ pub const DEFAULT_FONT: Handle<Font> = Handle::Weak(AssetId::Uuid {
 });
 
 pub fn plugin(app: &mut App) {
-    app.add_systems(Startup, spawn_ui_camera)
-        .add_systems(Update, change_button_background);
-
     load_internal_binary_asset!(
         app,
         DEFAULT_FONT,
         "NotoSansSC-Bold.ttf",
         |bytes: &[u8], _path: String| Font::try_from_bytes(bytes.to_vec()).unwrap()
     );
+
+    app.add_systems(Startup, spawn_ui_camera)
+        .add_systems(Update, change_button_background);
 }
 
 pub trait SpawnUi: Send + Sync {
@@ -118,7 +118,9 @@ fn spawn_ui_camera(mut commands: Commands) {
     commands.spawn(UiCamera);
 }
 
-fn change_button_background(mut buttons: Query<(&Interaction, &mut BackgroundColor)>) {
+fn change_button_background(
+    mut buttons: Query<(&Interaction, &mut BackgroundColor), Changed<Interaction>>,
+) {
     for (interaction, mut background_color) in &mut buttons {
         match interaction {
             Interaction::None => background_color.0 = NONE,
