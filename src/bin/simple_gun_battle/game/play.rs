@@ -114,12 +114,7 @@ fn spawn_scene_enemy_rigid_bodies(
     mut materials: ResMut<Assets<HealthBarMaterial>>,
 ) {
     if *rectangle == Handle::default() {
-        *rectangle = meshes.add(
-            Rectangle::new(1.5, 0.15)
-                .mesh()
-                .build()
-                .rotated_by(Quat::from_rotation_y(f32::consts::PI)),
-        );
+        *rectangle = meshes.add(Rectangle::new(1.5, 0.15));
     }
 
     let mut thread_rng = thread_rng();
@@ -174,13 +169,12 @@ fn health_bar_align_player_camera(
     player: Single<&GlobalTransform, With<Player>>,
 ) {
     for (mut health_transform, health_global_transform) in &mut health_bars {
-        let camera_translation = health_transform.transform_point(
-            health_global_transform
-                .affine()
-                .inverse()
-                .transform_point3(player.translation()),
-        );
-        health_transform.look_at(camera_translation, Vec3::Y);
+        let camera_translation = health_global_transform
+            .affine()
+            .inverse()
+            .transform_point3(player.translation());
+        let camera_translation = health_transform.transform_point(camera_translation);
+        health_transform.align(Vec3::Z, camera_translation.normalize(), Vec3::Y, Vec3::Y);
     }
 }
 
