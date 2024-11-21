@@ -24,7 +24,7 @@ fn main() -> AppExit {
                     ..default()
                 }),
         )
-        .add_plugins((PhysicsPlugins::default(), FramepacePlugin, PhysicsDebugPlugin::default()))
+        .add_plugins((PhysicsPlugins::default(), FramepacePlugin))
         .add_plugins((ui_utils::plugin, start_menu::plugin, game::plugin))
         .init_state::<AppState>()
         .enable_state_scoped_entities::<AppState>()
