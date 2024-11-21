@@ -1,7 +1,8 @@
+use std::time::Duration;
+
 use avian3d::prelude::*;
 use bevy::{
-    prelude::*,
-    scene::{SceneInstance, SceneInstanceReady},
+    core_pipeline::bloom::Bloom, prelude::*, scene::{SceneInstance, SceneInstanceReady}
 };
 
 use crate::game::{GameState, SceneIndex};
@@ -21,10 +22,13 @@ pub struct GameScene;
 pub struct Player;
 
 #[derive(Component)]
-pub struct PlayerModel;
+pub struct Gun;
 
 #[derive(Component)]
 pub struct PlayerCamera;
+
+#[derive(Component)]
+pub struct GunFlame(pub Timer);
 
 #[derive(Event)]
 pub struct DespawnScenePlayer;
@@ -43,7 +47,12 @@ fn spawn_scene(
     ));
 }
 
-fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn spawn_player(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    asset_server: Res<AssetServer>,
+) {
     commands
         .spawn((
             Transform::from_xyz(0., 1.5, 0.),
@@ -59,16 +68,35 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
             parent
                 .spawn((
                     SceneRoot(asset_server.load(GltfAssetLabel::Scene(0).from_asset("gun.glb"))),
-                    PlayerModel,
+                    Gun,
                 ))
                 .with_children(|parent| {
+                    parent.spawn((
+                        Mesh3d(meshes.add(Rectangle::new(0.7, 0.7))),
+                        MeshMaterial3d(materials.add(StandardMaterial {
+                            base_color: Color::WHITE.with_alpha(0.).with_luminance(2.),
+                            base_color_texture: Some(asset_server.load("explosion.png")),
+                            unlit: true,
+                            alpha_mode: AlphaMode::AlphaToCoverage,
+                            ..default()
+                        })),
+                        Transform::from_xyz(0., 0., 1.4)
+                            .with_rotation(Quat::from_rotation_x(std::f32::consts::PI)),
+                        GunFlame({
+                            let mut timer = Timer::from_seconds(0.2, TimerMode::Once);
+                            timer.set_elapsed(Duration::from_secs_f32(0.2));
+                            timer
+                        }),
+                    ));
                     parent
                         .spawn((
                             Camera3d::default(),
                             Camera {
                                 order: 1,
+                                hdr: true,
                                 ..default()
                             },
+                            Bloom::NATURAL,
                             Transform::from_xyz(0.2, 0.2, -0.3).looking_to(Vec3::Z, Vec3::Y),
                             PlayerCamera,
                         ))

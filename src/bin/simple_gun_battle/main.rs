@@ -24,10 +24,11 @@ fn main() -> AppExit {
                     ..default()
                 }),
         )
-        .add_plugins((PhysicsPlugins::default(), FramepacePlugin))
+        .add_plugins((PhysicsPlugins::default(), FramepacePlugin, PhysicsDebugPlugin::default()))
         .add_plugins((ui_utils::plugin, start_menu::plugin, game::plugin))
         .init_state::<AppState>()
         .enable_state_scoped_entities::<AppState>()
+        .insert_resource(SubstepCount(12))
         .add_systems(Update, exit_app.run_if(input_just_pressed(KeyCode::Escape)))
         .run()
 }
